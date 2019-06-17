@@ -47,11 +47,11 @@ class Params {
 }
 
 class Message {
-  senderId: string
+  senderID: string
   params: Params
 
   toString() {
-    return JSON.parse(this)
+    return JSON.stringify(this)
   }
 }
 
@@ -172,8 +172,9 @@ module.exports = class App {
     return JSON.stringify(message)
   }
 
-  _parseMessage(message: Message) {
-    return JSON.parse(message)
+
+  _parseMessage(msg: string) {
+    return JSON.parse(msg)
   }
 
   _betterThan(message: Message) {
