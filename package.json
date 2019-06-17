@@ -1,0 +1,21 @@
+{
+  "name": "master-election-poc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -w ./src ./src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "consola": "^2.7.1",
+    "redis": "^2.8.0"
+  }
+}
