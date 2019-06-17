@@ -6,8 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -w ./src ./src/index.js",
-    "build": "flow-remove-types src/ -d lib/",
-    "flow": "flow"
+    "flow": "flow",
+    "flow:build": "flow-remove-types src/ -d lib/ --pretty --all",
+    "flow:check": "flow check ./src/",
+    "flow:status": "flow status ./src/"
   },
   "keywords": [],
   "author": "",
