@@ -1,3 +1,6 @@
+'use strict'
+// @flow
+
 const redis = require("redis");
 const consola = require('consola')
 const chalk = require('chalk')
@@ -35,13 +38,32 @@ const sleep = (time = 10) => {
   })
 }
 
-module.exports = class App {
-  constructor(id) {
+class Params {
+  id: string
+
+  constructor(id: string) {
     this.id = id
-    this.params = {
-      id: this.id,
-      date: 'date'
-    };
+  }
+}
+
+class Message {
+  senderId: string
+  params: Params
+
+  toString() {
+    return JSON.parse(this)
+  }
+}
+
+module.exports = class App {
+
+  id: string
+  params: Params
+  whoSaysItsMe: Array<string>
+
+  constructor(id: string) {
+    this.id = id
+    this.params = new Params(this.id)
     this.whoSaysItsMe = []
   }
 
@@ -138,11 +160,11 @@ module.exports = class App {
     sub.unsubscribe(ON_NODE_ELECT);
   }
 
-  emitMessage(params) {
+  emitMessage(params: Params) {
     pub.publish(ON_MESSAGE, this._buildMessage(params));
   }
 
-  _buildMessage(params) {
+  _buildMessage(params: Params) {
     const message = {
       senderID: this.id,
       params: params
@@ -150,11 +172,11 @@ module.exports = class App {
     return JSON.stringify(message)
   }
 
-  _parseMessage(message) {
+  _parseMessage(message: Message) {
     return JSON.parse(message)
   }
 
-  _betterThan(message) {
+  _betterThan(message: Message) {
     console.log()
     return this.params.id >= message.params.id
   }
@@ -164,7 +186,7 @@ module.exports = class App {
     return clients;
   }
 
-  async _isStopConditionReached (message) {
+  async _isStopConditionReached (message: Message) {
     // console.log('Checking stop condition', this.id, message.params.id)
     // console.log('Checking stop condition', typeof this.id, typeof message.params.id)
     const heSayItsMe = parseInt(message.params.id) == parseInt(this.id)

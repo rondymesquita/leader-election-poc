@@ -5,12 +5,16 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -w ./src ./src/index.js"
+    "dev": "nodemon -w ./src ./src/index.js",
+    "build": "flow-remove-types src/ -d lib/",
+    "flow": "flow"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "flow-bin": "^0.102.0-rc",
+    "flow-remove-types": "^2.101.0",
     "nodemon": "^1.19.1"
   },
   "dependencies": {
