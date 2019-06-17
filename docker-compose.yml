@@ -8,9 +8,9 @@ services:
     build: ./
     tty: true
     entrypoint: npm run dev
-    environment:
-      - ID=1
-      - NAME=service1
+    # environment:
+    #   - ID=1
+    #   - NAME=service1
     volumes:
       - ./src:/var/www/src
   service2:
@@ -18,16 +18,16 @@ services:
     tty: true
     entrypoint: npm run dev
     environment:
-      - ID=3
-      - NAME=service2
+      # - ID=3
+      # - NAME=service2
     volumes:
       - ./src:/var/www/src
-  service3:
-    build: ./
-    tty: true
-    entrypoint: npm run dev
-    environment:
-      - ID=2
-      - NAME=service3
-    volumes:
-      - ./src:/var/www/src
+  # service3:
+  #   build: ./
+  #   tty: true
+  #   entrypoint: npm run dev
+  #   environment:
+  #     - ID=2
+  #     - NAME=service3
+  #   volumes:
+  #     - ./src:/var/www/src
