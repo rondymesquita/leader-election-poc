@@ -1,10 +1,11 @@
 'use strict'
 
 const redis = require("redis");
-const consola = require('consola')
 const chalk = require('chalk')
 const { promisify } = require('util');
 
+const Logger = require('./logger.js');
+let logger = null;
 const MessageHandler = require('./message-handler');
 const Node = require('./node');
 
@@ -59,6 +60,7 @@ module.exports = class App {
     this.id = id
     this.criterions = new Criterions(id)
     this.whoSaysItsMe = []
+    logger = new Logger(id);
   }
 
   async start() {
@@ -73,43 +75,48 @@ module.exports = class App {
       const isSaved = await Node.isSaved(this.id)
       if (!isSaved) {
         await Node.add(this.id)
-        consola.info('New node added on list:', this.id)
+        logger.info('New node added on list:', this.id)
         messageHandler.emitNodeEnter(new Election(this.id))
       }
     })
 
     messageHandler.onMessage(async (criterions) => {
-      consola.info('==> On Message')
+      logger.info('==> On Message', criterions, this.id)
 
       const nodes = await Node.list()
       if (nodes.length === 0) {
-        consola.info('No clients, I`m the master', this.id)
+        logger.info('No clients, I`m the master', this.id)
         messageHandler.emitNodeElected(new Election(this.id))
         return
       }
 
+      // // Ignore when node enter event is triggered by myself
+      // if (this.id === criterions.senderID) {
+      //   return
+      // }
+
       const {isDone, masterID } = await this._isStopConditionReached(criterions)
         if (isDone) {
-          consola.success('Stop condition reached! Master is: ', masterID)
+          logger.success('Stop condition reached! Master is: ', masterID)
           pub.publish(ON_NODE_ELECT, JSON.stringify({id: masterID}) );
           return
         }
     })
 
     messageHandler.onNodeEnter(async (election) => {
-        consola.info(chalk.cyan('node entered'), election, this.id)
+        logger.info(chalk.cyan('node entered'), election, this.id)
 
         // Ignore when node enter event is triggered by myself
-        if (this.id === election.id) {
-          return
-        }
+        // if (this.id !== election.id) {
+        //   return
+        // }
 
-        messageHandler.subscribeEvents()
+        // messageHandler.subscribeEvents()
         messageHandler.startElection(this.criterions);
     })
 
     messageHandler.onNodeElected((election) => {
-      consola.success(chalk.green('MASTER ELECTED ' + election.id))
+      logger.success(chalk.green('MASTER ELECTED ' + election.id))
       messageHandler.stopElection()
     })
 
@@ -130,7 +137,7 @@ module.exports = class App {
   }
 
   async _isStopConditionReached (criterions) {
-    consola.info('Checking stop condition', this.id, criterions.senderID)
+    logger.info('Checking stop condition', this.id, criterions.senderID)
     // console.log('Checking stop condition', this.id, message.params.id)
     // console.log('Checking stop condition', typeof this.id, typeof message.params.id)
     const heSayItsMe = parseInt(criterions.senderID) == parseInt(this.id)
@@ -146,8 +153,8 @@ module.exports = class App {
       return client !== this.id
     })
 
-    consola.info('clients', clients)
-    consola.info('whoSaysItsMe?', this.whoSaysItsMe)
+    logger.info('clients', clients)
+    logger.info('whoSaysItsMe?', this.whoSaysItsMe)
     console.log()
     if (clients.sort().join() === this.whoSaysItsMe.sort().join()) {
       console.log('Stop condition reached')

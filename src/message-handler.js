@@ -35,7 +35,6 @@ module.exports = class MessageHandler {
       Always enabled since new nodes may enter and leave on redis channel
      */
     sub.subscribe(ON_NODE_ENTER);
-    this.subscribeEvents()
 
    /*
     When messages came by channel
@@ -58,6 +57,7 @@ module.exports = class MessageHandler {
   }
 
   startElection(criterions) {
+    this.subscribeEvents()
     this.emitMessage(criterions);
 
   }
