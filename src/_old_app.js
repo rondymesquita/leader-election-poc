@@ -62,6 +62,7 @@ module.exports = class App {
   }
 
   async start() {
+    consola.info('==> Starting')
     await Promise.all([
       delKey(STORE_NODES),
       delKey(STORE_MASTER_ID),
@@ -70,6 +71,8 @@ module.exports = class App {
 
     const messageHandler = new MessageHandler()
     messageHandler.onMessageSubscription(async (count) => {
+      // consola.info('==> onMessageSubscription', count, this.id)
+
       const isSaved = await Node.isSaved(this.id)
       if (!isSaved) {
         await Node.add(this.id)
@@ -97,15 +100,11 @@ module.exports = class App {
     })
 
     messageHandler.onNodeEnter(async (election) => {
-        consola.info(chalk.cyan('node entered'), election, this.id)
-
-        // Ignore when node enter event is triggered by myself
-        if (this.id === election.id) {
-          return
-        }
-
-        messageHandler.subscribeEvents()
-        messageHandler.startElection(this.criterions);
+        consola.info(chalk.cyan('node entered'), election)
+        sub.subscribe(ON_MESSAGE);
+        sub.subscribe(ON_NODE_ELECT);
+        messageHandler.emitMessage(this.criterions)
+        // this.emitMessage(ON_MESSAGE, this.params)
     })
 
     messageHandler.onNodeElected((election) => {
@@ -117,7 +116,118 @@ module.exports = class App {
       TODO: start election only when a node loses connection with its master
      */
     messageHandler.startElection(this.criterions);
+
+    // const subscrictionHandler = new SubscriptionHandler();
+
+    // const messages = {
+    //   [`${ON_MESSAGE}`]: async (msg) => {
+    //     console.log('====> here')
+
+    //     const message = this._parseMessage(msg)
+
+    //     const {isDone, masterId } = await this._isStopConditionReached(message)
+    //     if (isDone) {
+    //       consola.success('Stop condition reached! Master is: ', masterId)
+    //       pub.publish(ON_NODE_ELECT, JSON.stringify({id: masterId}) );
+    //       return
+    //     }
+
+    //     console.log('Message on:%s from:%s', this.id, message.senderID)
+    //     if (this._betterThan(message)) {
+    //       consola.info('********** Sending my criterions')
+    //       this.emitMessage(ON_MESSAGE, this.params)
+    //     } else {
+    //       consola.info('========== Sending received', msg)
+    //       this.emitMessage(ON_MESSAGE, message.params)
+    //     }
+    //   },
+    //   [`${ON_NODE_ENTER}`]: (msg) => {
+    //     consola.info(chalk.cyan('node entered ' + msg))
+    //     sub.subscribe(ON_MESSAGE);
+    //     sub.subscribe(ON_NODE_ELECT);
+    //     this.emitMessage(ON_MESSAGE, this.params)
+    //   },
+    //   [`${ON_NODE_ELECT}`]: (msg) => {
+    //     const message = JSON.parse(msg)
+    //     consola.success(chalk.green('MASTER ELECTED ' + message.id))
+    //     this.stopElection()
+    //   }
+    // }
+
+    // const subscriptions = {
+    //   [`${ON_MESSAGE}`]: async (count) => {
+    //     const clients = await this._getClients()
+    //     if (!clients.includes(this.id)) {
+    //       consola.info('New node added on list:')
+    //       consola.info("Subscribed for messages on id:%s count:%s", this.id, count);
+    //       consola.info('clients', clients)
+    //       await add(STORE_NODES, this.id)
+    //       consola.info('clients2', clients)
+    //       pub.publish(ON_NODE_ENTER, this.id)
+    //     }
+    //   }
+    // }
+
+    // sub.on("message", async (channel, msg) => {
+    //   // const clients = await this._getClients();
+    //   // // consola.info('on message ', clients, clients.length === 1, clients.includes(this.id), this.id)
+    //   // consola.info('==> on message ==>', channel, msg)
+    //   // consola.info('==> clients ==>', clients)
+    //   // // if (clients.length === 1 && clients.includes(this.id)) {
+    //   // if (clients.length === 0) {
+    //   //   consola.info('No clients, I`m the master', this.id)
+    //   //   pub.publish(ON_NODE_ELECT, JSON.stringify({id: this.id}) );
+    //   //   return
+    //   // }
+
+    //   // // ignore my own messages
+    //   // const message = this._parseMessage(msg)
+    //   // console.log('=====> Checking message', channel, message)
+    //   // if (message.senderID === this.id) {
+    //   //   return
+    //   // }
+    //   // console.log('=====>Calling chanel', channel)
+    //   // calling proper channel on messages
+    //   const fn = messages[channel]
+    //   if (fn) fn(msg)
+    // });
+    // sub.on("subscribe", async (channel, count) => {
+    //   const fn = subscriptions[channel]
+    //   if (fn) fn(count)
+    // });
+
+
+    // sub.subscribe(ON_MESSAGE);
+    // sub.subscribe(ON_NODE_ENTER);
+    // sub.subscribe(ON_NODE_ELECT);
+
+    //start election right away
+    // this.emitMessage(ON_MESSAGE, this.params)
   }
+
+  // stopElection () {
+  //   sub.unsubscribe(ON_MESSAGE);
+  //   sub.unsubscribe(ON_NODE_ELECT);
+  //   consola.info("Election stopped");
+  // }
+
+  // emitMessage(channel, params) {
+  //   consola.info('Emmiting message', {channel, params})
+  //   pub.publish(channel, this._buildMessage(params));
+  // }
+
+  // _buildMessage(params) {
+  //   const message = {
+  //     senderID: this.id,
+  //     params: params
+  //   };
+  //   return JSON.stringify(message)
+  // }
+
+
+  // _parseMessage(msg) {
+  //   return JSON.parse(msg)
+  // }
 
   _betterThan(message) {
     console.log()
