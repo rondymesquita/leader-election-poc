@@ -5,11 +5,11 @@ class Logger{
     this.id = id;
   }
 
-  info(message) {
-    consola.info(`#${this.id} - ${message}`)
+  info(message, ...args) {
+    consola.info(`#${this.id} - ${message}`, args)
   }
 
-  success(message) {
+  success(message, ...args) {
     consola.success(`#${this.id} - ${message}`)
   }
 }

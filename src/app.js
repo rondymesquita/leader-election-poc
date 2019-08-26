@@ -75,43 +75,52 @@ module.exports = class App {
       const isSaved = await Node.isSaved(this.id)
       if (!isSaved) {
         await Node.add(this.id)
-        logger.info('New node added on list:', this.id)
+        logger.info('[onMessageSubscription] New node added on list:', this.id)
         messageHandler.emitNodeEnter(new Election(this.id))
       }
     })
 
     messageHandler.onMessage(async (criterions) => {
-      logger.info('==> On Message', criterions, this.id)
-
-      const nodes = await Node.list()
-      if (nodes.length === 0) {
-        logger.info('No clients, I`m the master', this.id)
-        messageHandler.emitNodeElected(new Election(this.id))
-        return
-      }
-
-      // // Ignore when node enter event is triggered by myself
+      // Ignore when node enter event is triggered by myself
       // if (this.id === criterions.senderID) {
       //   return
       // }
 
+      logger.info('[On Message]', criterions, this.id)
+
+      const nodes = await Node.list()
+
+      logger.info('[On Message] Nodes',  nodes)
+      if (nodes.length === 0) {
+        logger.info('[On Message] No clients, I`m the master', this.id)
+        messageHandler.emitNodeElected(new Election(this.id))
+        return
+      } else if (nodes.length === 1 && nodes[0] === this.id){
+        logger.info('[On Message] Clients on the list', nodes)
+        logger.info('[On Message] Only me on the list, I`m the master', this.id)
+        messageHandler.emitNodeElected(new Election(this.id))
+        return
+      }
+
       const {isDone, masterID } = await this._isStopConditionReached(criterions)
         if (isDone) {
-          logger.success('Stop condition reached! Master is: ', masterID)
+          logger.success('[On Message] Stop condition reached! Master is: ', masterID)
           pub.publish(ON_NODE_ELECT, JSON.stringify({id: masterID}) );
           return
         }
     })
 
     messageHandler.onNodeEnter(async (election) => {
-        logger.info(chalk.cyan('node entered'), election, this.id)
+        // if (this.id === election.id) {
+        //   return
+        // }
+        logger.info('[OnNodeEnter] node entered', election, this.id)
 
         // Ignore when node enter event is triggered by myself
         // if (this.id !== election.id) {
         //   return
         // }
 
-        // messageHandler.subscribeEvents()
         messageHandler.startElection(this.criterions);
     })
 
@@ -137,12 +146,9 @@ module.exports = class App {
   }
 
   async _isStopConditionReached (criterions) {
-    logger.info('Checking stop condition', this.id, criterions.senderID)
-    // console.log('Checking stop condition', this.id, message.params.id)
-    // console.log('Checking stop condition', typeof this.id, typeof message.params.id)
+    logger.info('Checking stop condition', this.id, criterions)
     const heSayItsMe = parseInt(criterions.senderID) == parseInt(this.id)
     console.log('*** he:%s saying im master? %s', criterions.senderID, heSayItsMe)
-    // console.log('sender id', message.senderID)
     if (heSayItsMe && !this.whoSaysItsMe.includes(criterions.senderID)) {
       this.whoSaysItsMe.push(criterions.senderID)
     }
