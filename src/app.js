@@ -89,7 +89,6 @@ module.exports = class App {
 
     messageHandler.onMessage(async criterions => {
       await sleep();
-      logger.info("[On Message] criterions", criterions, this.id);
 
       const nodes = await Node.list();
 
@@ -106,10 +105,11 @@ module.exports = class App {
         return;
       }
 
-      logger.info("[On Message] criterions", criterions.senderID, this.id, criterions.senderID === this.id);
       if (this.id === criterions.senderID) {
         return
       }
+
+      logger.info("[On Message] criterions", criterions, this.id, criterions.senderID === this.id);
 
       if (this._betterThan(criterions)) {
         consola.info("********** Sending my criterions", this.criterions);
@@ -176,16 +176,25 @@ module.exports = class App {
     }).length
 
     logger.info("nodeCountsExceptMe", nodesLengthExceptMe);
+    logger.info("nodes", nodes);
+    logger.info("whoSaysItsMe", this.whoSaysItsMe);
 
-    if (criterions.senderID === this.id) {
-      logger.warn('Ignoring myself');
-      return {isDone: false, masterID: null}
-    }
+    // logger.info('$$$$$$$$$$$$$$$$$$$$$ ', criterions.senderID, this.id);
+    // if (criterions.senderID === this.id) {
+    //   logger.info('======================= Ignoring myself');
+    //   return {isDone: false, masterID: null}
+    // }
 
     const heSayItsMe = parseInt(criterions.params.masterID) == parseInt(this.id)
-    const senderID = criterions.params.senderID
+
+    logger.info('$$$$$$$$ heSayItsMe', heSayItsMe);
+    logger.info('$$$$$$$$ criterions', criterions);
+    logger.info('$$$$$$$$ id', this.id);
+    const senderID = criterions.senderID
     if (heSayItsMe && !this.whoSaysItsMe.includes(senderID)) {
       this.whoSaysItsMe.push(senderID)
+      logger.info('$$$$$$$$ added on the list', senderID);
+      logger.info('$$$$$$$$ list', this.whoSaysItsMe);
     }
 
     //final check
@@ -196,35 +205,5 @@ module.exports = class App {
       console.log('Election keep going')
       return {isDone: false, masterID: null}
     }
-
-    // if (criterions.senderID === this.id) {
-    //   logger.info('Checking myself. I don`t need this!')
-    //   return
-    // }
-
-    // if (this._betterThan(criterions)) {
-
-    // }
-
-    // const heSayItsMe = parseInt(criterions.senderID) == parseInt(this.id)
-    // console.log('He [%s] saying im master? [%s]', criterions.senderID, heSayItsMe)
-    // if (heSayItsMe && !this.whoSaysItsMe.includes(criterions.senderID)) {
-    //   this.whoSaysItsMe.push(criterions.senderID)
-    // }
-
-    // let nodes = await Node.list()
-    // nodes = nodes.filter((node) => {
-    //   return node !== this.id
-    // })
-
-    // logger.info('[_isStopConditionReached] Nodes', nodes)
-    // logger.info('[_isStopConditionReached] whoSaysItsMe?', this.whoSaysItsMe)
-    // if (nodes.sort().join() === this.whoSaysItsMe.sort().join()) {
-    //   console.log('Stop condition reached')
-    //   return {isDone: true, masterID: this.id}
-    // } else {
-    //   console.log('Election keep going')
-    //   return {isDone: false, masterID: null}
-    // }
   }
 };
