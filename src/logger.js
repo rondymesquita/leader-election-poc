@@ -10,7 +10,11 @@ class Logger{
   }
 
   success(message, ...args) {
-    consola.success(`#${this.id} - ${message}`)
+    consola.success(`#${this.id} - ${message}`, args)
+  }
+
+  warn(message, ...args) {
+    consola.warn(`#${this.id} - ${message}`, args)
   }
 }
 

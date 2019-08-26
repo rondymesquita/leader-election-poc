@@ -59,22 +59,20 @@ module.exports = class MessageHandler {
   startElection(criterions) {
     this.subscribeEvents()
     this.emitMessage(criterions);
-
+    consola.info("Election started");
   }
 
   stopElection() {
-    this.unsubscribeEvents()
-    consola.info("Election stopped");
+      this.unsubscribeEvents()
+      consola.info("Election stopped");
   }
 
   unsubscribeEvents() {
-    consola.info("Election stopped");
     sub.unsubscribe(ON_MESSAGE);
     sub.unsubscribe(ON_NODE_ELECT);
   }
 
   subscribeEvents() {
-    consola.info("Election started");
     sub.subscribe(ON_MESSAGE);
     sub.subscribe(ON_NODE_ELECT);
   }
