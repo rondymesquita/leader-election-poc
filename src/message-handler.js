@@ -22,6 +22,8 @@ const add = promisify(client.lpush).bind(client);
 
 module.exports = class MessageHandler {
   constructor() {
+    this.isRunning = false;
+
     this.messageChannels = {
       [`${ON_MESSAGE}`]: null,
       [`${ON_NODE_ELECT}`]: null
@@ -42,8 +44,6 @@ module.exports = class MessageHandler {
     sub.on("message", (channel, message) => {
       const criterions = JSON.parse(message);
       const handler = this.messageChannels[channel];
-      // consola.info("Receiving message\n", { channel, criterions, handler });
-
       if (handler) handler(criterions);
     });
 
@@ -57,14 +57,20 @@ module.exports = class MessageHandler {
   }
 
   startElection(criterions) {
-    this.subscribeEvents()
-    this.emitMessage(criterions);
-    consola.info("Election started");
+    if (!this.isRunning) {
+      this.subscribeEvents()
+      this.emitMessage(criterions);
+      this.isRunning = true
+      consola.info("Election started");
+    }
   }
 
   stopElection() {
+    if (this.isRunning) {
       this.unsubscribeEvents()
+      this.isRunning = false
       consola.info("Election stopped");
+    }
   }
 
   unsubscribeEvents() {

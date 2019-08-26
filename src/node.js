@@ -9,6 +9,7 @@ const redisOptions = {
 
 const client = redis.createClient(redisOptions);
 const add = promisify(client.lpush).bind(client);
+const del = promisify(client.lrem).bind(client);
 const list = promisify(client.lrange).bind(client);
 
 const STORE_NODES = 'election:store:nodes'
@@ -17,6 +18,10 @@ const STORE_MASTER_ID = 'election:store:master_id'
 class RedisService {
   static async add(key, value) {
     await add(key, value)
+  }
+
+  static async del(key, value) {
+    await del(key, value)
   }
 
   static async list (key) {
@@ -39,6 +44,10 @@ module.exports = class Node {
   static async isSaved(id) {
     const nodes = await Node.list()
     return nodes.includes(id)
+  }
+
+  static async deleteAll() {
+    await RedisService.del(STORE_NODES)
   }
 
 }

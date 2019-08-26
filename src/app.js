@@ -37,7 +37,7 @@ const sleep = (time = 1) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve();
-    }, time * 1000);
+    }, time * 1);
   });
 };
 
@@ -73,7 +73,6 @@ module.exports = class App {
     await Promise.all([
       delKey(STORE_NODES),
       delKey(STORE_MASTER_ID)
-      // add(STORE_NODES, this.id)
     ]);
 
     const messageHandler = new MessageHandler();
@@ -112,12 +111,12 @@ module.exports = class App {
       logger.info("[On Message] criterions", criterions, this.id, criterions.senderID === this.id);
 
       if (this._betterThan(criterions)) {
-        consola.info("********** Sending my criterions", this.criterions);
+        // consola.info("********** Sending my criterions", this.criterions);
         messageHandler.emitMessage(
           this.criterions
         );
       } else {
-        consola.info("========== Sending received", criterions);
+        // consola.info("========== Sending received", criterions);
         messageHandler.emitMessage(
           new Criterions(this.id, criterions.params)
         );
@@ -169,40 +168,25 @@ module.exports = class App {
   // }
 
   async _isStopConditionReached(criterions) {
-    logger.info("Checking stop condition", this.id, criterions);
+    // logger.info("Checking stop condition", this.id, criterions);
     let nodes = await Node.list()
     const nodesLengthExceptMe = nodes.filter((node) => {
       return node !== this.id
     }).length
 
-    logger.info("nodeCountsExceptMe", nodesLengthExceptMe);
-    logger.info("nodes", nodes);
-    logger.info("whoSaysItsMe", this.whoSaysItsMe);
-
-    // logger.info('$$$$$$$$$$$$$$$$$$$$$ ', criterions.senderID, this.id);
-    // if (criterions.senderID === this.id) {
-    //   logger.info('======================= Ignoring myself');
-    //   return {isDone: false, masterID: null}
-    // }
-
     const heSayItsMe = parseInt(criterions.params.masterID) == parseInt(this.id)
 
-    logger.info('$$$$$$$$ heSayItsMe', heSayItsMe);
-    logger.info('$$$$$$$$ criterions', criterions);
-    logger.info('$$$$$$$$ id', this.id);
     const senderID = criterions.senderID
     if (heSayItsMe && !this.whoSaysItsMe.includes(senderID)) {
       this.whoSaysItsMe.push(senderID)
-      logger.info('$$$$$$$$ added on the list', senderID);
-      logger.info('$$$$$$$$ list', this.whoSaysItsMe);
     }
 
     //final check
     if (nodesLengthExceptMe == this.whoSaysItsMe.length) {
-      console.log('Stop condition reached')
+      // logger.success('Stop condition reached')
       return {isDone: true, masterID: this.id}
     } else {
-      console.log('Election keep going')
+      // logger.info('Election keep going')
       return {isDone: false, masterID: null}
     }
   }
