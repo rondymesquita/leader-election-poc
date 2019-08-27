@@ -122,11 +122,10 @@ module.exports = class App {
         );
       }
 
-      const {isDone, masterID } = await this._isStopConditionReached(criterions)
+      const {isDone, masterID } = await this.checkStopCondition(criterions)
       if (isDone) {
         logger.success('[On Message] Stop condition reached! Master is: ', masterID)
         messageHandler.emitNodeElected(new Election(masterID))
-        // pub.publish(ON_NODE_ELECT, JSON.stringify({id: masterID}) );
         return
       }
     });
@@ -138,13 +137,14 @@ module.exports = class App {
         return;
       }
 
-      logger.info("[OnNodeEnter] node entered", election, this.id);
+      logger.info("[OnNodeEnter] New node", election);
       messageHandler.startElection(this.criterions);
     });
 
     messageHandler.onNodeElected(async election => {
       await sleep();
-      logger.success(chalk.green("MASTER ELECTED " + election.id));
+      const nodes = await Node.list()
+      logger.success(chalk.green("MASTER ELECTED " + election.id), nodes);
       messageHandler.stopElection();
     });
 
@@ -156,18 +156,13 @@ module.exports = class App {
 
   _betterThan(criterions) {
     console.log();
-    logger.info('Comparing\n', this.criterions.params);
+    logger.info('Comparing myself\n', this.criterions.params);
     logger.info('With\n', criterions);
     console.log();
     return this.criterions.params.age >= criterions.params.age;
   }
 
-  // async _getClients() {
-  //   const clients = await list(STORE_NODES, 0, -1)
-  //   return clients;
-  // }
-
-  async _isStopConditionReached(criterions) {
+  async checkStopCondition(criterions) {
     // logger.info("Checking stop condition", this.id, criterions);
     let nodes = await Node.list()
     const nodesLengthExceptMe = nodes.filter((node) => {

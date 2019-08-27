@@ -37,6 +37,7 @@ module.exports = class MessageHandler {
       Always enabled since new nodes may enter and leave on redis channel
      */
     sub.subscribe(ON_NODE_ENTER);
+    sub.subscribe(ON_NODE_ELECT);
 
    /*
     When messages came by channel
@@ -75,12 +76,12 @@ module.exports = class MessageHandler {
 
   unsubscribeEvents() {
     sub.unsubscribe(ON_MESSAGE);
-    sub.unsubscribe(ON_NODE_ELECT);
+    // sub.unsubscribe(ON_NODE_ELECT);
   }
 
   subscribeEvents() {
     sub.subscribe(ON_MESSAGE);
-    sub.subscribe(ON_NODE_ELECT);
+    // sub.subscribe(ON_NODE_ELECT);
   }
 
   /*
@@ -120,30 +121,8 @@ module.exports = class MessageHandler {
     this._publish(ON_NODE_ELECT, election)
   }
 
-  // async _onSubscribeMessage (count) {
-  //    const nodes = await this._getNodes()
-  //    console.log('============>', count, nodes)
-  //    if (!nodes.includes(this.id)) {
-  //      consola.info('New node added on list:')
-  //      consola.info("Subscribed for messages on id:%s count:%s", this.id, count);
-  //      consola.info('nodes', nodes)
-  //      await add(STORE_NODES, this.id)
-  //      consola.info('clients2', nodes)
-  //      // pub.publish(ON_NODE_ENTER, this.id)
-  //    }
-  // }
-
-  // onMessageHandler(criterions) {
-  //   consola.info('==> On Message', criterions)
-  // }
-
   _publish(channel, payload) {
-    // consola.info("Emmiting message\n", { channel, payload });
     pub.publish(channel, JSON.stringify(payload));
   }
 
-  // async _getNodes() {
-  //   const nodes = await list(STORE_NODES, 0, -1)
-  //   return nodes;
-  // }
 };
