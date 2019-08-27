@@ -5,33 +5,14 @@ const chalk = require("chalk");
 const { promisify } = require("util");
 
 const Logger = require("./logger.js");
-let logger = null;
 const MessageHandler = require("./message-handler");
 const Node = require("./node");
 
-const ON_NODE_ELECT = "election:done";
-const ON_MESSAGE = "election:message";
-const ON_NODE_ENTER = "election:node_entered";
-
-const STORE_NODES = "election:store:nodes";
-const STORE_MASTER_ID = "election:store:master_id";
-
-const max = 10;
-let count = 0;
-
+let logger = null;
 const redisOptions = {
   host: "localhost",
   port: 6379
 };
-const sub = redis.createClient(redisOptions);
-const pub = redis.createClient(redisOptions);
-const client = redis.createClient(redisOptions);
-
-const add = promisify(client.lpush).bind(client);
-const list = promisify(client.lrange).bind(client);
-const del = promisify(client.lrem).bind(client);
-const get = promisify(client.hget).bind(client);
-const delKey = promisify(client.del).bind(client);
 
 const sleep = (time = 1) => {
   return new Promise((resolve, reject) => {
@@ -71,8 +52,8 @@ module.exports = class App {
 
   async start() {
     await Promise.all([
-      delKey(STORE_NODES),
-      delKey(STORE_MASTER_ID)
+      Node.deleteAll()
+      // delKey(STORE_MASTER_ID)
     ]);
 
     const messageHandler = new MessageHandler();
